@@ -4,13 +4,15 @@ from dataclasses import dataclass
 from math import sqrt
 
 from .classifier import QuestionType, ThemeScore, classify_intent, detect_themes
-from .composer import AnswerPlan, compose, synthesize
-from .knowledge import PRINCIPLES, PRINCIPLES_BY_ID
+from .composer import AnswerPlan
+from .knowledge import PRINCIPLES
 from .lexicon import RELATIONSHIPS, VOCABULARY
 from .logic import evaluate
 from .preprocessing import Text, preprocess
 from .subjects import Subject, extract_subject
 from .universal import choose_lenses, interpret
+from .demand import Demand, identify_demand
+from .planning import construct_plan
 
 MAX_QUESTION_LENGTH = 6000
 
@@ -29,6 +31,10 @@ class Result:
     lens_ids: tuple[str, ...] = ()
     topic_matched: bool = False
     truncated: bool = False
+    demand: Demand | None = None
+    concept_ids: tuple[str, ...] = ()
+    chain_ids: tuple[str, ...] = ()
+    applied_rule_ids: tuple[str, ...] = ()
 
 
 def retrieve(scores):
@@ -72,36 +78,22 @@ def reason(question):
     if not cleaned:
         return Result("", text, intent, (), (), (), None, False)
     subject = extract_subject(text, intent)
+    demand = identify_demand(text, intent, subject)
     scores = detect_themes(text, PRINCIPLES)
     selected = retrieve(scores)
     lenses = choose_lenses(intent, subject, scores)
     universal_plan = interpret(subject, intent, lenses)
     rules = evaluate(scores, text)
-    if rules and selected:
-        # A rule is an explicit argument linking these principles. Make its
-        # foundations visible to callers inspecting the reasoning trace.
-        rule_principles = tuple(PRINCIPLES_BY_ID[id] for id in rules[0].principles)
-        primary = selected[0]
-        if primary not in rule_principles:
-            # A narrowly applicable tension may outrank a noisy broad theme.
-            primary = rule_principles[0]
-        selected = (primary,) + tuple(p for p in rule_principles if p.id != primary.id)
-    specific_plan = compose(text, intent, selected, rules) if selected else None
-    recognized = set()
-    for score in scores:
-        if score.direct >= 3:
-            for phrase in score.matched:
-                recognized.update(preprocess(phrase, VOCABULARY).concepts)
-    # Do not let a broad topic word erase an unfamiliar noun in a longer phrase.
-    content = preprocess(subject.label, VOCABULARY).concepts - {"us", "human", "humans", "people", "real", "true", "mean", "meaningful", "be"}
-    focused = bool(content) and content <= recognized
-    plan = synthesize(universal_plan, specific_plan, subject, intent, selected, rules, focused)
+    planned = construct_plan(text, demand, universal_plan, rules, selected)
+    plan = planned.plan
     return Result(
         answer=plan.render(), text=text, intent=intent, themes=scores,
-        principle_ids=tuple(p.id for p in selected),
+        principle_ids=planned.principle_ids,
         rule_ids=tuple(rule.id for rule in rules), plan=plan, supported=True,
         subject=subject, lens_ids=tuple(lens.id for lens in lenses),
         topic_matched=bool(selected), truncated=truncated,
+        demand=demand, concept_ids=planned.concept_ids,
+        chain_ids=planned.chain_ids, applied_rule_ids=planned.applied_rule_ids,
     )
 
 

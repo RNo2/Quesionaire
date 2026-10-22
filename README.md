@@ -1,165 +1,119 @@
 # What do you seek
 
-A minimal Streamlit question-and-answer app backed entirely by a local,
-deterministic philosophical engine. Type a question and press Enter.
-The interface uses Times New Roman (with local serif fallbacks), a bold wine-red
-heading and a locally served pixel-art Hermes Trismegistus background. The
-background is a decorative generated asset in `static/hermes-pixel.png`; it is
-not loaded from an external image service. Static serving is enabled in
-`.streamlit/config.toml`.
+A minimal Streamlit philosophy app: one empty input, Enter to ask, Markdown
+answers from a deterministic local worldview engine. No LLM, API key, inference
+service, downloaded model or outbound connection is used to answer questions.
 
-Above the question is an interactive, low-resolution **3D voxel Hermes**.
-Hover for a subtle turn, drag with a mouse or finger to rotate, or focus the
-portrait and use the arrow keys. Home or a double-click resets the view.
-The portrait uses native WebGL through Streamlit's current v2 component API;
-there is no graphics library, external model download or CDN. It renders only
-while changing orientation, respects reduced-motion preferences, and releases
-GPU resources when unmounted. If WebGL is unavailable, the local pixel portrait
-appears instead. The source is `ui/hermes.py` and `ui/hermes.js`; restart the app
-after editing the JavaScript so the component definition reloads.
+## Interface
 
-No API keys, paid inference, language models, embeddings, downloaded neural
-models or external services are used to answer a question. Once dependencies
-are installed, answering requires no outbound network access. Streamlit still
-uses its normal browser/server connection to display the app.
+A newly generated, viewport-scale Hermes presence sits behind the question,
+with a centered face, outstretched arms, shadow, mist and a dark vignette.
+The small voxel component has been retired. Dusty wine typography and bone
+answer text use locally hosted **EB Garamond**, licensed under the SIL Open
+Font License (see `static/fonts/OFL.txt`). No external font/image host is needed.
+The decorative background has restrained desktop pointer parallax; touch and
+reduced-motion users receive a still composition. It never captures input,
+focus or scrolling. Mobile styling keeps the question and input above the fold.
 
-## Run locally
+`app.py` owns the form/state flow. `ui/theme.css` owns composition and typography;
+`ui/presence.py` and `ui/presence.js` attach the decorative pointer interaction
+through Streamlit's v2 component API. Restart after changing component JS.
+Static serving is enabled in `.streamlit/config.toml`.
 
-Use Python 3.12 (tested).
+## Run and deploy
+
+Use Python 3.12:
 
 ```sh
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-python -m streamlit run app.py --browser.gatherUsageStats false
+python -m streamlit run app.py
 ```
 
-On Windows, activate with `.venv\Scripts\Activate.ps1` instead.
-No secrets file or environment variables are required. Existing secrets files
-remain ignored and are not read by the app.
+On Windows use `.venv\Scripts\Activate.ps1` to activate the environment.
 
-## Streamlit Community Cloud
+For Streamlit Community Cloud select repository `RNo2/Quesionaire`, branch
+`main`, main file `app.py`, Python **3.12**. No secrets or environment variables
+are required. Existing deployments normally rebuild after a push; use
+**Manage app → Reboot** if needed. Old OpenAI secrets can be removed.
+Streamlit is the only direct runtime dependency. Secrets files remain ignored.
 
-- Repository: `RNo2/Quesionaire`
-- Branch: `main`
-- Main file: `app.py`
-- Python: **3.12**
-- Secrets: **none**
-
-An existing deployment normally rebuilds when `main` changes. If necessary,
-select **Manage app → Reboot**. Old inference keys/model settings may be removed
-from Streamlit Secrets; they are no longer used. Only Streamlit is a direct
-runtime dependency. No usage-based inference costs are incurred; normal free
-hosting resource and availability limits still apply.
-
-## How answers are constructed
+## Reasoning architecture
 
 ```text
-question → intent + subject/kind extraction + weighted topics
-         → permanent universal lenses + optional topic principles
-         → subject bridge + tension/relationship synthesis
-         → tailored answer plan → deterministic prose
+normalized question → operation + central subject + conditional premise
+                    → concept models / optional topic retrieval
+                    → connected conceptual relations + constructive synthesis
+                    → direct answer → reasons → implication → complication → limit
 ```
 
-- `philosophy/knowledge.py`: 17 structured principles converted from the original
-  worldview: causal unfolding, conditioned choice, fate through action,
-  counterfactual learning, witness/awareness, consciousness, one-and-many,
-  localized perspective, universe experiencing itself, structure/function/
-  participation/purpose, perception, suffering, uncertainty, truth, science/
-  metaphysics, AI as nature, and discipline. Each has definitions, claims,
-  reasoning, qualifications, implications and equivalent sentence banks.
-- `worldview.py`: compatibility entry point exposing the structured knowledge.
-  The original prose is retained in Git history, not used as a system prompt.
-- `preprocessing.py`: Unicode/case/whitespace normalization, contraction
-  expansion, tokenization, explicit inflection/synonym aliases, bounded typo
-  correction, phrase boundaries and limited negation context.
-- `lexicon.py`: weighted keywords, phrases, exclusions and a theme graph.
-- `classifier.py`: fifteen question intentions, weighted textual evidence and
-  local token-overlap similarity against representative statements. Each graph
-  boost is one-hop and capped at 1.5; a boost alone cannot retrieve a principle
-  or activate a tension rule.
-- `engine.py`: retrieves up to three connected principles with direct support.
-  Multi-domain topic principles require support for each domain. This threshold
-  no longer controls whether the engine reasons: every non-whitespace string,
-  including symbolic input, receives a universal interpretation and a plan.
-  Pure `reason(text)` exposes subject/kind, selected lens IDs, topic IDs,
-  `topic_matched`, matching rules, truncation status and the answer plan.
-  `supported` means an interpretation exists, not that every factual premise
-  is verified. `answer_question(text)` returns only the visitor's prose.
-- `logic.py`: reusable tension/synthesis rules. These cover agency/determinism,
-  fate/passivity, oneness/locality, perception/external fact, intelligence/
-  consciousness, purpose/function, ignorance/evidence, witness/personality,
-  regret/action, material suffering, science/metaphysics and purpose/action.
-  When several rules match, the highest-priority rule supplies the main
-  synthesis; the trace includes all matching rule IDs.
-- `subjects.py`: linguistic subject extraction and reusable profiles for
-  systems, resources, experience, institutions, tools, relationships and other
-  kinds. Profile information helps select lenses without becoming fake direct
-  evidence for a topic match. Unlisted subjects retain their own wording.
-- `universal.py`: ten permanent lenses: causality, structure, participation,
-  perception, agency, knowledge, change, purpose, whole/parts and truth. Intent,
-  subject kind/profile and available topic evidence select three relevant
-  lenses. This path remains active even with zero topic overlap.
-- `composer.py`: position → reasoning → distinction → implication. Definitions,
-  personal questions, comparisons and challenges use different plans. A stable
-  SHA-256 selection varies equivalent topic wording without runtime randomness.
-  Subject-based arguments are combined with relevant topic details and tension
-  rules, rather than replacing an unfamiliar noun with a stock topic summary.
+The old engine missed “Who is” as a definition, had no substantive God concept,
+and allowed a topic or critical rule to replace the central answer. The new
+planner resolves the demand first. Definitions, existence, explanations,
+mechanisms, purpose, practical/normative questions, comparisons, challenges and
+hypotheticals have distinct roles. Criticism supplies a relevant complication;
+it cannot silently overwrite the opening. Explicit inference challenges and
+same-reference contradictions receive direct logical evaluations.
 
-The engine reasons within a finite, authored English vocabulary and rule base.
-It is not unrestricted language understanding, a theorem prover, a general
-fact-finder or a replacement for evidence. Negation handling is limited to
-local context; answers discuss distinctions without attributing a belief to
-someone simply because they mention it. Complex or unsupported wording may be
-missed. Unmatched subjects receive a conditional philosophical argument, not
-an abstention. External factual requests distinguish verification from
-interpretation without inventing a result. Very long inputs are interpreted
-from the first 6,000 characters after trimming outer whitespace. No session chat history or
-shared response cache is used; questions are interpreted independently.
+- `philosophy/knowledge.py`: all 17 original structured worldview principles,
+  plus a God/totality principle. God can mean the underlying reality manifesting
+  as differentiated forms, distinct from an external personal creator. This
+  is offered as a metaphysical interpretation, not scientific proof.
+- `concepts.py`: 19 reusable concept models, ten directed conceptual chains and
+  four constructive joins. Relations include reality → structures → functions/
+  experiences → individuality; conditions → dispositions → actions → consequences
+  → conditions; and structure → function → participation → purpose. These are
+  authored relations, not full-question lookup entries.
+- `demand.py`: operation and central-subject analysis independent of topic scores;
+  matches concepts while retaining unknown subjects. Scoped attribute binding
+  distinguishes a contradiction about the same whole from different properties
+  of a part and whole.
+- `planning.py`: produces the ordered answer plan, concept/chain/principle trace
+  and applied-rule trace. Known concepts receive constructive arguments before
+  qualifications. Identity and existence are separate demands.
+- `preprocessing.py`, `classifier.py`, `lexicon.py`: normalization, aliases,
+  bounded typo correction, local negation, intent detection, weighted topic
+  evidence and capped relationship boosts. Boosts alone cannot force retrieval.
+- `logic.py`: reusable distinctions concerning agency, unity, perception,
+  evidence, consciousness, purpose, suffering and action.
+- `subjects.py`, `universal.py`: reusable subject profiles and ten permanent
+  philosophical lenses. An unfamiliar subject keeps its wording and receives
+  an interpretive argument instead of an abstention or unrelated topic summary.
+  External factual questions distinguish interpretation from verification.
+- `composer.py`: ordered plan rendering, exact duplicate suppression and stable
+  SHA-256 selection among equivalent authored phrasings.
+- `engine.py`: pure `reason(text)` exposes operation, subject, concepts, chains,
+  principles, matched/applied rules, lenses and plan. `answer_question(text)`
+  returns visitor prose. `supported` means an interpretation exists, not that
+  its factual premises were verified.
+- `worldview.py`: convenient exports for inspecting/editing principles, models,
+  chains and lenses. The original prose is preserved in Git history.
 
-## Extend the worldview
+## Extend and validate
 
-Edit a principle's banks in `knowledge.py`, add recognition language and theme
-relationships in `lexicon.py`, and add an explicit relationship in `logic.py`
-when two ideas need a shared argument. Expand universal lenses in `universal.py`
-and subject profiles in `subjects.py`. Add paraphrases, counterexamples and
-expected distinctions to `tests/test_engine.py` and `tests/test_universal.py`. Do not add exact question-to-
-answer mappings. Sentence choices should remain equivalent in claim and scope.
-
-## Validate
+Edit concept claims in `knowledge.py`, connect them in `concepts.py`, and expand
+recognition in `lexicon.py` or subject profiles as needed. Add paraphrases and
+counterexamples to the regression corpus rather than exact question/answer
+mappings.
 
 ```sh
 python -m pip check
 python -m unittest discover -s tests -v
 ```
 
-The engine tests also run without installing Streamlit:
+Thirty tests cover worldview domains, direct-answer order, God paraphrases,
+existence versus definition, scoped contradictions, connected chains, subject
+retention, unknown inputs, negation, deterministic output across processes,
+blocked network sockets, input bounds, and Streamlit blank/duplicate/rerun/
+Markdown behavior. Desktop and mobile browser checks cover Enter submission,
+local font loading, overflow and startup without JavaScript errors.
 
-```sh
-python -m unittest discover -s tests -p test_engine.py -v
-python -m unittest discover -s tests -p test_universal.py -v
-```
+## Limits
 
-The corpus covers all philosophical domains, question types, paraphrases,
-tensions, exclusions, typos, previously unsupported subjects, input bounds, negation,
-consistent output across process hash seeds and blocked outbound sockets.
-Streamlit AppTest exercises real local answers, empty submissions, reruns,
-duplicates and Markdown rendering without raw response HTML. No API mocks or
-external test credentials are needed.
-
-## Why the abstention was removed
-
-The former `engine.py` returned a constant message immediately when
-`retrieve(scores)` was empty. No answer planner ran for an unfamiliar topic.
-Now subject extraction and permanent lens selection always produce an
-interpretation; topic retrieval is an optional enrichment layer. Matching
-thresholds were retained for topic accuracy rather than lowered to force a
-match. The original 17 topic principles remain intact. A bare `what if` is
-classified as hypothetical reasoning rather than automatically mistaken for
-regret about the past.
-
-The interface is unchanged in function: one input, Enter to submit, one answer,
-no dashboard controls. Browser checks cover desktop and mobile, actual Enter
-submission for known and unlisted subjects, heading styling, background loading,
-and no outbound requests. A normal app startup is required for the local static
-background; no extra asset host or secret is needed.
+This is a finite authored English rule system, not unrestricted language
+understanding, empirical verification or a theorem prover. Complex syntax,
+irony, remote negation and unfamiliar paraphrases can be misread. Universal
+fallbacks provide philosophical interpretation, not new factual knowledge.
+Answers are independent; there is no conversation memory. Inputs are bounded
+to the first 6,000 trimmed characters. Empty/whitespace input does nothing.

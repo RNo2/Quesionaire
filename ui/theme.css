@@ -1,0 +1,136 @@
+@font-face {
+    font-family: "EB Garamond";
+    src: url("/app/static/fonts/EBGaramond.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400 800;
+    font-display: swap;
+}
+
+#MainMenu, header, footer, [data-testid="stSidebar"],
+[data-testid="stSidebarCollapsedControl"], [data-testid="stToolbar"],
+[data-testid="stDecoration"], [data-testid="stStatusWidget"],
+[data-testid="InputInstructions"], .stFormSubmitButton {
+    display: none !important;
+}
+
+.stApp {
+    background-color: #060508;
+    background-image:
+        radial-gradient(ellipse at 50% 35%, transparent 10%, rgba(3, 2, 6, .34) 70%, rgba(3, 2, 6, .74) 100%),
+        linear-gradient(180deg, rgba(5, 3, 8, .13) 0%, rgba(5, 3, 8, .21) 34%, rgba(5, 3, 8, .61) 66%, rgba(5, 3, 8, .91) 100%),
+        url("/app/static/hermes-presence.png");
+    background-size: cover;
+    background-position: calc(50% + var(--presence-x, 0px)) calc(50% + var(--presence-y, 0px));
+    background-attachment: fixed;
+    color: #ddd5c9;
+}
+
+.stApp, .stApp p, .stApp input, .stApp label, .stApp button,
+.stApp h1, .stApp h2, .stApp h3, .stApp li, .stApp blockquote {
+    font-family: "EB Garamond", Georgia, serif !important;
+}
+
+.block-container {
+    position: relative;
+    max-width: 740px;
+    padding-top: 44vh;
+    padding-top: clamp(20rem, 44svh, 34rem);
+    padding-bottom: 12vh;
+}
+
+.stApp h1.seek {
+    text-align: center;
+    font-size: clamp(2.5rem, 4.7vw, 3.65rem);
+    font-weight: 500;
+    font-variant: small-caps;
+    letter-spacing: .055em;
+    line-height: 1.15;
+    color: #bc899c;
+    margin-bottom: 1.8rem;
+    padding: 0;
+    text-shadow: 0 2px 18px #08050a, 0 1px 3px #000;
+}
+
+div[data-testid="stForm"] {
+    border: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+[data-testid="stTextInput"] [data-baseweb="input"],
+[data-testid="stTextInputRootElement"] {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+[data-testid="stTextInputRootElement"] {
+    border-bottom: 1px solid rgba(183, 155, 160, .63) !important;
+}
+
+[data-testid="stTextInputRootElement"]:focus-within {
+    border-bottom-color: #c493a3 !important;
+}
+
+.stTextInput input, [data-testid="stTextInput"] input {
+    background: transparent !important;
+    color: #e1d8cb !important;
+    caret-color: #c493a3;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-align: center;
+    font-size: 1.28rem !important;
+    padding: .65rem .25rem !important;
+    text-shadow: 0 1px 4px #000;
+}
+
+.stTextInput input::placeholder { color: transparent !important; }
+
+.st-key-answer {
+    position: relative;
+    isolation: isolate;
+    margin-top: 3.3rem;
+    color: #ddd5c9;
+    text-shadow: 0 1px 3px #000;
+}
+
+.st-key-answer::before {
+    content: "";
+    position: absolute;
+    inset: -25px -18px;
+    z-index: -1;
+    background: rgba(5, 4, 8, .73);
+    filter: blur(20px);
+    pointer-events: none;
+}
+
+.st-key-answer p, .st-key-answer li {
+    font-size: 1.23rem;
+    line-height: 1.85;
+    letter-spacing: .005em;
+    margin-bottom: 1em;
+}
+
+@media (max-width: 640px) {
+    .stApp {
+        background-position: 50% 0%;
+        background-image:
+            linear-gradient(180deg, rgba(5, 3, 8, .16) 0%, rgba(5, 3, 8, .32) 30%, rgba(5, 3, 8, .73) 65%, rgba(5, 3, 8, .94) 100%),
+            url("/app/static/hermes-presence.png");
+    }
+    .block-container {
+        padding-top: 44vh;
+        padding-top: clamp(19rem, 44svh, 28rem);
+        padding-left: 1.4rem;
+        padding-right: 1.4rem;
+    }
+    .stApp h1.seek { font-size: clamp(2.2rem, 9.5vw, 2.8rem); letter-spacing: .035em; }
+    .st-key-answer p, .st-key-answer li { font-size: 1.15rem; line-height: 1.8; }
+    .stTextInput input, [data-testid="stTextInput"] input { font-size: 1.18rem !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .stApp { background-position: 50% 50%; }
+}

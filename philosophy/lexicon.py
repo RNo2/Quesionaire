@@ -12,6 +12,8 @@ class Theme:
 
 
 THEMES = {
+    "divinity": Theme(("god", "deity", "divinity"), ("divine", "creator", "creation"),
+        ("personal creator", "creator and creation", "underlying totality")),
     "causality": Theme(("causality", "cause", "determinism", "conditioned"),
         ("biology", "circumstance", "condition", "randomness", "quantum"),
         ("cause and effect", "everything has a cause", "prior conditions")),
@@ -29,7 +31,7 @@ THEMES = {
     "consciousness": Theme(("consciousness", "conscious", "experience"),
         ("mind", "living", "tree", "bird", "cell", "death"),
         ("subjective experience", "inner life", "after death", "what it is like", "plants feel", "trees feel", "animals feel", "have feelings")),
-    "oneness": Theme(("unity", "universe", "ocean", "divine", "god"),
+    "oneness": Theme(("unity", "universe", "ocean", "divine"),
         ("wave", "whole", "creation", "creator"),
         ("one reality", "everything is one", "we are one", "one consciousness", "all connected")),
     "individuality": Theme(("individuality", "individual", "separate", "localized"),
@@ -61,6 +63,7 @@ THEMES = {
 }
 
 RELATIONSHIPS = {
+    "divinity": ("oneness", "consciousness", "knowledge"),
     "free_will": ("causality", "action", "fate", "awareness"),
     "causality": ("free_will", "action", "fate"),
     "fate": ("causality", "free_will", "action"),

@@ -31,6 +31,32 @@ class Principle:
 
 PRINCIPLES = (
     Principle(
+        id="divine_totality", themes=("divinity",),
+        definition="God can be understood as the underlying totality of existence, expressing itself through differentiated forms rather than necessarily standing outside creation.",
+        openings=(
+            "God may name the one reality of which the universe and its many forms are expressions.",
+            "The divine can be conceived as existence itself rather than a separate person who manufactures it from outside.",
+        ),
+        reasoning=(
+            "If creator and creation are not ultimately separate, a particular being is a localized expression of reality rather than a substance outside it.",
+            "Differentiated structures can sustain distinct functions and experiences within a greater whole, just as a cell has a local history within a body.",
+        ),
+        qualifications=(
+            "This is a metaphysical interpretation, not proof that the totality is a conscious personal agent.",
+            "Individual consciousness does not by itself establish a single consciousness belonging to the universe as a whole.",
+        ),
+        conclusions=(
+            "On this reading, the relation to the divine is participation in existence, not separation from an external maker.",
+            "Understanding the divine this way joins unity with the reality of distinct local lives.",
+        ),
+        applications=(
+            "Examine how a local life participates in the wider reality without making its particular responsibilities disappear.",
+            "Distinguish a conception of divine totality from claims about a personal creator's intentions.",
+        ),
+        examples=("What is the divine?", "Is creator separate from creation?"),
+        epistemic_status="metaphysical interpretation",
+    ),
+    Principle(
         id="causal_unfolding", themes=("causality",),
         definition="Causality is the dependence of events on conditions that make a difference to what follows.",
         openings=(

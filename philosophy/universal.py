@@ -102,6 +102,7 @@ INTENT_LENSES = {
     QuestionType.EXISTENTIAL: ("purpose", "participation", "agency"),
     QuestionType.EPISTEMIC: ("knowledge", "truth", "perception"),
     QuestionType.CHALLENGE: ("truth", "causality", "agency"),
+    QuestionType.EXISTENCE: ("knowledge", "structure", "perception"),
 }
 
 KIND_LENSES = {

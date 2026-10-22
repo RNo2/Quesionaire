@@ -166,6 +166,7 @@ def extract_subject(text, intent):
         r"^how (?:could|can|do) (?:we|i) know (?:whether |if )?(.+)$",
         r"^(?:why|how) (?:do|does|did|is|are|can|should|would) (.+?)(?: work)?$",
         r"^(?:what|who) (?:is|are) (.+)$",
+        r"^define (.+)$",
         r"^(?:am|is|are|does|do|can|could|should|would) (.+)$",
         r"^(?:what if|suppose|imagine) (.+)$",
     )
@@ -199,7 +200,7 @@ def extract_subject(text, intent):
             kind = "decision"
         elif intent == QuestionType.PERSONAL:
             kind = "experience"
-        elif intent in (QuestionType.TRUTH, QuestionType.HYPOTHETICAL, QuestionType.CHALLENGE, QuestionType.EPISTEMIC):
+        elif intent in (QuestionType.TRUTH, QuestionType.EXISTENCE, QuestionType.HYPOTHETICAL, QuestionType.CHALLENGE, QuestionType.EPISTEMIC):
             kind = "claim"
         if tokens & {"rain", "weather", "volcano", "tides", "earthquake", "storm"}:
             kind = "natural phenomenon"

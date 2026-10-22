@@ -24,6 +24,7 @@ class QuestionType(str, Enum):
     CONSEQUENCES = "consequences"
     EPISTEMIC = "epistemology"
     PRACTICAL = "practical_decision"
+    EXISTENCE = "existence"
 
 
 def classify_intent(text):
@@ -36,7 +37,7 @@ def classify_intent(text):
         return QuestionType.CONSEQUENCES
     if text.has_any(("difference between", "different from", "versus", "vs", "same as", "relationship between")) or re.search(r"\bhow .+ differ\b", question):
         return QuestionType.COMPARISON
-    if text.contains("if") and text.has_any(("meaningless", "nothing matters", "why bother", "contradict", "contradiction", "how can", "is not", "does not", "can not", "point in trying", "why should")):
+    if text.contains("if") and (text.has_any(("meaningless", "nothing matters", "why bother", "contradict", "contradiction", "how can", "is not", "does not", "can not", "point in trying", "why should")) or re.match(r"^(?:can|could|is|are)\b", question)):
         return QuestionType.CHALLENGE
     if text.has_any(("should", "ought")):
         return QuestionType.NORMATIVE
@@ -48,11 +49,15 @@ def classify_intent(text):
         return QuestionType.PERSONAL
     if re.search(r"^what (?:is|are) .+ for$", question) or text.has_any(("purpose of", "what purpose")):
         return QuestionType.PURPOSE
+    if re.search(r"\b(?:exist|exists|existence)\b", question) and re.match(r"^(?:does|do|is|are|can|could)\b", question):
+        return QuestionType.EXISTENCE
+    if re.match(r"^(?:is|are) .+ real$", question):
+        return QuestionType.EXISTENCE
     if text.has_any(("what causes", "where does", "where do")) or re.search(r"^what makes .+ (?:happen|occur|arise)$", question):
         return QuestionType.CAUSAL
     if re.search(r"^how (?:does|do|can|is|are)\b", question):
         return QuestionType.MECHANISM
-    if text.has_any(("what is", "what are", "define", "definition")) or re.search(r"^what does .+ mean$", question):
+    if text.has_any(("what is", "what are", "who is", "who are", "define", "definition")) or re.search(r"^what does .+ mean$", question):
         return QuestionType.DEFINITION
     if text.has_any(("why", "because")):
         return QuestionType.EXPLANATION

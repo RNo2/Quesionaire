@@ -66,7 +66,7 @@ class EngineTests(unittest.TestCase):
     def test_question_types_and_composition(self):
         cases = {
             "What is consciousness?": QuestionType.DEFINITION,
-            "Is free will real?": QuestionType.TRUTH,
+            "Is free will real?": QuestionType.EXISTENCE,
             "Why do humans suffer?": QuestionType.EXPLANATION,
             "Should I regret what I did?": QuestionType.NORMATIVE,
             "What is the purpose of life?": QuestionType.EXISTENTIAL,
@@ -86,7 +86,7 @@ class EngineTests(unittest.TestCase):
     def test_reusable_tensions(self):
         cases = {
             "If fate controls us why bother?": ("fate_not_passivity", "Effort"),
-            "If everything is predetermined why should I even try?": ("fate_not_passivity", "consequential"),
+            "If everything is predetermined why should I even try?": ("fate_not_passivity", "deliberation and effort"),
             "Does causality eliminate choice?": ("determinism_and_agency", "causal irrelevance"),
             "If the universe is one consciousness why do I feel separate?": ("oneness_and_locality", "localized"),
             "Can belief change objective reality?": ("belief_not_external_fact", "conviction alone"),
@@ -111,7 +111,7 @@ class EngineTests(unittest.TestCase):
         text = preprocess("I don't believe that belief creates objective reality", VOCABULARY)
         self.assertIn("believe", text.negated_concepts)
         result = reason("I don't believe that belief creates objective reality")
-        self.assertIn("without making an external proposition true", result.answer)
+        self.assertIn("conviction alone does not make an external claim true", result.answer)
         self.assertNotIn("you believe", result.answer.lower())
         ai = reason("Is AI not conscious?")
         self.assertIn("unresolved", ai.answer)

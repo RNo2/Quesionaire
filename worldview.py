@@ -8,5 +8,6 @@ The original prose is preserved in Git history.
 from philosophy.knowledge import PRINCIPLES, PRINCIPLES_BY_ID, Principle
 from philosophy.lexicon import RELATIONSHIPS
 from philosophy.universal import LENSES
+from philosophy.concepts import CHAINS, MODELS, SYNTHESES
 
-__all__ = ["Principle", "PRINCIPLES", "PRINCIPLES_BY_ID", "RELATIONSHIPS", "LENSES"]
+__all__ = ["Principle", "PRINCIPLES", "PRINCIPLES_BY_ID", "RELATIONSHIPS", "LENSES", "CHAINS", "MODELS", "SYNTHESES"]
