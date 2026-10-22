@@ -1,11 +1,10 @@
-from pathlib import Path
-
 import streamlit as st
 
 from philosophy import answer_question
 from philosophy.engine import MAX_QUESTION_LENGTH
 from philosophy.preprocessing import normalize
 from ui.presence import render_presence
+from ui.styles import stylesheet
 
 st.set_page_config(
     page_title="",
@@ -16,7 +15,7 @@ st.set_page_config(
 
 # Trusted local stylesheet: visitor text is never interpolated into HTML/CSS.
 st.markdown(
-    "<style>" + Path(__file__).with_name("ui").joinpath("theme.css").read_text() + "</style>",
+    "<style>" + stylesheet() + "</style>",
     unsafe_allow_html=True,
 )
 

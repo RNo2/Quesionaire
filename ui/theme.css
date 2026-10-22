@@ -25,6 +25,10 @@
     color: #ddd5c9;
 }
 
+[data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background: transparent !important;
+}
+
 .stApp, .stApp p, .stApp input, .stApp label, .stApp button,
 .stApp h1, .stApp h2, .stApp h3, .stApp li, .stApp blockquote {
     font-family: "EB Garamond", Georgia, serif !important;

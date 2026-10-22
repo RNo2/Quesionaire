@@ -18,7 +18,10 @@ focus or scrolling. Mobile styling keeps the question and input above the fold.
 `app.py` owns the form/state flow. `ui/theme.css` owns composition and typography;
 `ui/presence.py` and `ui/presence.js` attach the decorative pointer interaction
 through Streamlit's v2 component API. Restart after changing component JS.
-Static serving is enabled in `.streamlit/config.toml`.
+`ui/styles.py` embeds the local background and font directly in the stylesheet,
+so their display does not depend on cloud static-file routing. Transparent main
+containers keep the background visible. Static serving remains enabled for
+other assets in `.streamlit/config.toml`.
 
 ## Run and deploy
 
