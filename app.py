@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 from openai import OpenAI
+from streamlit.errors import StreamlitSecretNotFoundError
 from worldview import WORLDVIEW
 
 st.set_page_config(
@@ -13,13 +14,15 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-        #MainMenu, header, footer {
-            visibility: hidden;
+        #MainMenu, header, footer, [data-testid="stSidebar"],
+        [data-testid="stSidebarCollapsedControl"] {
+            display: none !important;
         }
 
         [data-testid="stToolbar"],
         [data-testid="stDecoration"],
-        [data-testid="stStatusWidget"] {
+        [data-testid="stStatusWidget"],
+        [data-testid="InputInstructions"] {
             display: none !important;
         }
 
@@ -73,7 +76,7 @@ st.markdown(
             display: none !important;
         }
 
-        .answer {
+        .st-key-answer {
             margin-top: 3.4rem;
             font-size: 1.08rem;
             line-height: 1.85;
@@ -81,7 +84,7 @@ st.markdown(
             color: #d8d5cf;
         }
 
-        .answer p {
+        .st-key-answer p {
             margin-bottom: 1.15rem;
         }
 
@@ -97,56 +100,66 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-def get_api_key():
+DEFAULT_MODEL = "gpt-5.5"
+UNAVAILABLE = "The answer could not be reached. Try again shortly."
+
+
+def get_setting(name, default=None):
+    """Prefer Streamlit Secrets, with an environment fallback per setting."""
     try:
-        return st.secrets.get("OPENAI_API_KEY")
+        value = st.secrets.get(name)
+    except StreamlitSecretNotFoundError:
+        value = None
+    return value or os.getenv(name) or default
+
+
+def answer_question(question):
+    """Keep credentials, transport details and provider errors off the page."""
+    try:
+        api_key = get_setting("OPENAI_API_KEY")
+        if not api_key:
+            return None
+        with OpenAI(api_key=api_key, timeout=45.0, max_retries=0) as client:
+            response = client.responses.create(
+                model=get_setting("OPENAI_MODEL", DEFAULT_MODEL),
+                instructions=WORLDVIEW,
+                input=question,
+                max_output_tokens=1600,
+                store=False,
+            )
+        if response.status != "completed":
+            return None
+        return response.output_text.strip() or None
     except Exception:
+        # SDK initialization, configuration and request failures share a quiet
+        # visitor message. Never render exceptions or credential values.
         return None
-
-def get_model():
-    try:
-        return st.secrets.get("OPENAI_MODEL", "gpt-5.5")
-    except Exception:
-        return os.getenv("OPENAI_MODEL", "gpt-5.5")
-
-api_key = get_api_key() or os.getenv("OPENAI_API_KEY")
 
 st.markdown('<div class="seek">what is it you seek</div>', unsafe_allow_html=True)
 
-with st.form("ask", clear_on_submit=True, border=False):
+with st.form("ask", clear_on_submit=True, enter_to_submit=True, border=False):
     question = st.text_input(
         "question",
         label_visibility="collapsed",
         placeholder="",
         autocomplete="off",
+        key="question",
     )
     submitted = st.form_submit_button("submit")
 
 if "answer" not in st.session_state:
     st.session_state.answer = ""
+if "last_question" not in st.session_state:
+    st.session_state.last_question = None
 
-if submitted and question.strip():
-    if not api_key:
-        st.session_state.answer = (
-            "This instance has not been given an OpenAI API key."
-        )
-    else:
-        client = OpenAI(api_key=api_key)
-        try:
-            response = client.responses.create(
-                model=get_model(),
-                instructions=WORLDVIEW,
-                input=question.strip(),
-                max_output_tokens=900,
-            )
-            st.session_state.answer = response.output_text.strip()
-        except Exception:
-            st.session_state.answer = (
-                "The answer could not be reached. Try again."
-            )
+question = question.strip()
+if submitted and question and question != st.session_state.last_question:
+    answer = answer_question(question)
+    st.session_state.answer = answer or UNAVAILABLE
+    # Successful duplicate submissions reuse the existing response. Failed
+    # requests remain retryable, and ordinary reruns never call the API.
+    st.session_state.last_question = question if answer else None
 
 if st.session_state.answer:
-    st.markdown(
-        f'<div class="answer">{st.session_state.answer}</div>',
-        unsafe_allow_html=True,
-    )
+    with st.container(key="answer"):
+        st.markdown(st.session_state.answer, unsafe_allow_html=False)
