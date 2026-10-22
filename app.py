@@ -1,8 +1,11 @@
 import os
+import logging
 import streamlit as st
 from openai import OpenAI
 from streamlit.errors import StreamlitSecretNotFoundError
 from worldview import WORLDVIEW
+
+logger = logging.getLogger(__name__)
 
 st.set_page_config(
     page_title="",
@@ -118,6 +121,7 @@ def answer_question(question):
     try:
         api_key = get_setting("OPENAI_API_KEY")
         if not api_key:
+            logger.error("Answer unavailable: OPENAI_API_KEY is not configured.")
             return None
         with OpenAI(api_key=api_key, timeout=45.0, max_retries=0) as client:
             response = client.responses.create(
@@ -128,9 +132,24 @@ def answer_question(question):
                 store=False,
             )
         if response.status != "completed":
+            logger.warning(
+                "Answer unavailable: response status=%s; incomplete reason=%s",
+                response.status,
+                getattr(getattr(response, "incomplete_details", None), "reason", None),
+            )
             return None
-        return response.output_text.strip() or None
-    except Exception:
+        answer = response.output_text.strip()
+        if not answer:
+            logger.warning("Answer unavailable: response completed without text.")
+        return answer or None
+    except Exception as error:
+        # Log only diagnostic categories, never exception messages, request
+        # bodies, headers, questions or credentials.
+        logger.error(
+            "Answer unavailable: error_type=%s http_status=%s",
+            type(error).__name__,
+            getattr(error, "status_code", None),
+        )
         # SDK initialization, configuration and request failures share a quiet
         # visitor message. Never render exceptions or credential values.
         return None
