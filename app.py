@@ -1,6 +1,7 @@
 import streamlit as st
 
 from philosophy import answer_question
+from philosophy.engine import MAX_QUESTION_LENGTH
 from philosophy.preprocessing import normalize
 
 st.set_page_config(
@@ -26,8 +27,19 @@ st.markdown(
         }
 
         .stApp {
-            background: #0b0b0b;
+            background-color: #0b0b0b;
+            background-image:
+                linear-gradient(90deg, rgba(6, 5, 7, 0.60), rgba(6, 5, 7, 0.30)),
+                url("/app/static/hermes-pixel.png");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: #ece9e2;
+        }
+
+        .stApp, .stApp p, .stApp input, .stApp label, .stApp button,
+        .stApp h1, .stApp h2, .stApp h3, .stApp li, .stApp blockquote {
+            font-family: "Times New Roman", Times, serif !important;
         }
 
         .block-container {
@@ -36,13 +48,15 @@ st.markdown(
             padding-bottom: 12vh;
         }
 
-        .seek {
+        .stApp h1.seek {
             text-align: center;
             font-size: clamp(1.7rem, 4vw, 2.8rem);
-            font-weight: 400;
-            letter-spacing: -0.035em;
-            color: #ece9e2;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: #a94a61;
             margin-bottom: 2.2rem;
+            padding: 0;
+            text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
         }
 
         div[data-testid="stForm"] {
@@ -50,7 +64,23 @@ st.markdown(
             padding: 0 !important;
         }
 
-        .stTextInput input {
+        [data-testid="stTextInput"] [data-baseweb="input"],
+        [data-testid="stTextInputRootElement"] {
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        [data-testid="stTextInputRootElement"] {
+            border-bottom: 1px solid rgba(236, 233, 226, 0.48) !important;
+        }
+
+        [data-testid="stTextInputRootElement"]:focus-within {
+            border-bottom-color: rgba(236, 233, 226, 0.85) !important;
+        }
+
+        .stTextInput input, [data-testid="stTextInput"] input {
             background: transparent !important;
             color: #ece9e2 !important;
             border: 0 !important;
@@ -62,12 +92,12 @@ st.markdown(
             padding: 0.7rem 0.2rem !important;
         }
 
-        .stTextInput input:focus {
+        .stTextInput input:focus, [data-testid="stTextInput"] input:focus {
             border-bottom: 1px solid rgba(236, 233, 226, 0.8) !important;
             box-shadow: none !important;
         }
 
-        .stTextInput input::placeholder {
+        .stTextInput input::placeholder, [data-testid="stTextInput"] input::placeholder {
             color: transparent !important;
         }
 
@@ -81,6 +111,7 @@ st.markdown(
             line-height: 1.85;
             letter-spacing: 0.003em;
             color: #d8d5cf;
+            text-shadow: 0 1px 3px #000;
         }
 
         .st-key-answer p {
@@ -88,6 +119,12 @@ st.markdown(
         }
 
         @media (max-width: 640px) {
+            .stApp {
+                background-position: 85% center;
+                background-image:
+                    linear-gradient(rgba(6, 5, 7, 0.54), rgba(6, 5, 7, 0.68)),
+                    url("/app/static/hermes-pixel.png");
+            }
             .block-container {
                 padding-top: 18vh;
                 padding-left: 1.25rem;
@@ -99,7 +136,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown('<div class="seek">what is it you seek</div>', unsafe_allow_html=True)
+st.markdown('<h1 class="seek">What do you seek</h1>', unsafe_allow_html=True)
 
 with st.form("ask", clear_on_submit=True, enter_to_submit=True, border=False):
     question = st.text_input(
@@ -117,8 +154,9 @@ if "last_question" not in st.session_state:
     st.session_state.last_question = None
 
 question = question.strip()
-normalized_question = normalize(question)
-if submitted and normalized_question and normalized_question != st.session_state.last_question:
+bounded_question = question[:MAX_QUESTION_LENGTH]
+normalized_question = normalize(bounded_question) or bounded_question
+if submitted and question and normalized_question != st.session_state.last_question:
     st.session_state.answer = answer_question(question)
     st.session_state.last_question = normalized_question
 

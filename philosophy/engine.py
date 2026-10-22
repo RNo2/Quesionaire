@@ -4,20 +4,15 @@ from dataclasses import dataclass
 from math import sqrt
 
 from .classifier import QuestionType, ThemeScore, classify_intent, detect_themes
-from .composer import AnswerPlan, compose
+from .composer import AnswerPlan, compose, synthesize
 from .knowledge import PRINCIPLES, PRINCIPLES_BY_ID
 from .lexicon import RELATIONSHIPS, VOCABULARY
 from .logic import evaluate
 from .preprocessing import Text, preprocess
+from .subjects import Subject, extract_subject
+from .universal import choose_lenses, interpret
 
 MAX_QUESTION_LENGTH = 6000
-FALLBACK = (
-    "I do not know how to resolve that question from these principles alone. "
-    "A confident answer would exceed the grounds available.\n\n"
-    "Make the underlying claim more precise: what is being asserted, and what "
-    "would count for or against it? Questions about choice, awareness, purpose, "
-    "suffering or the limits of knowledge provide a clearer starting point."
-)
 
 
 @dataclass(frozen=True)
@@ -30,6 +25,10 @@ class Result:
     rule_ids: tuple[str, ...]
     plan: AnswerPlan | None
     supported: bool
+    subject: Subject | None = None
+    lens_ids: tuple[str, ...] = ()
+    topic_matched: bool = False
+    truncated: bool = False
 
 
 def retrieve(scores):
@@ -64,21 +63,21 @@ def retrieve(scores):
 def reason(question):
     if not isinstance(question, str):
         raise TypeError("question must be text")
-    # Bound processing before tokenization or fuzzy matching of an unbounded input.
-    if len(question) > MAX_QUESTION_LENGTH:
-        text = preprocess("")
-        return Result("Please ask one focused question in 6,000 characters or fewer.",
-            text, QuestionType.TRUTH, (), (), (), None, False)
-    text = preprocess(question, VOCABULARY)
+    # Interpret a bounded prefix rather than replace a long input with refusal.
+    cleaned = question.strip()
+    truncated = len(cleaned) > MAX_QUESTION_LENGTH
+    bounded = cleaned[:MAX_QUESTION_LENGTH]
+    text = preprocess(bounded, VOCABULARY)
     intent = classify_intent(text)
-    if not text.normalized:
+    if not cleaned:
         return Result("", text, intent, (), (), (), None, False)
+    subject = extract_subject(text, intent)
     scores = detect_themes(text, PRINCIPLES)
     selected = retrieve(scores)
-    if not selected:
-        return Result(FALLBACK, text, intent, scores, (), (), None, False)
+    lenses = choose_lenses(intent, subject, scores)
+    universal_plan = interpret(subject, intent, lenses)
     rules = evaluate(scores, text)
-    if rules:
+    if rules and selected:
         # A rule is an explicit argument linking these principles. Make its
         # foundations visible to callers inspecting the reasoning trace.
         rule_principles = tuple(PRINCIPLES_BY_ID[id] for id in rules[0].principles)
@@ -87,9 +86,23 @@ def reason(question):
             # A narrowly applicable tension may outrank a noisy broad theme.
             primary = rule_principles[0]
         selected = (primary,) + tuple(p for p in rule_principles if p.id != primary.id)
-    plan = compose(text, intent, selected, rules)
-    return Result(plan.render(), text, intent, scores,
-        tuple(p.id for p in selected), tuple(rule.id for rule in rules), plan, True)
+    specific_plan = compose(text, intent, selected, rules) if selected else None
+    recognized = set()
+    for score in scores:
+        if score.direct >= 3:
+            for phrase in score.matched:
+                recognized.update(preprocess(phrase, VOCABULARY).concepts)
+    # Do not let a broad topic word erase an unfamiliar noun in a longer phrase.
+    content = preprocess(subject.label, VOCABULARY).concepts - {"us", "human", "humans", "people", "real", "true", "mean", "meaningful", "be"}
+    focused = bool(content) and content <= recognized
+    plan = synthesize(universal_plan, specific_plan, subject, intent, selected, rules, focused)
+    return Result(
+        answer=plan.render(), text=text, intent=intent, themes=scores,
+        principle_ids=tuple(p.id for p in selected),
+        rule_ids=tuple(rule.id for rule in rules), plan=plan, supported=True,
+        subject=subject, lens_ids=tuple(lens.id for lens in lenses),
+        topic_matched=bool(selected), truncated=truncated,
+    )
 
 
 def answer_question(question):

@@ -27,11 +27,16 @@ class AppTests(unittest.TestCase):
         app = self.app()
         self.assertEqual(app.text_input[0].value, "")
         self.assertEqual(app.session_state.answer, "")
-        self.assertIn("what is it you seek", app.markdown[1].value)
+        self.assertIn("What do you seek", app.markdown[1].value)
         self.assertEqual(len(app.sidebar), 0)
-        for question in ("", "   ", "???"):
+        for question in ("", "   "):
             self.submit(app, question)
             self.assertEqual(app.session_state.answer, "")
+
+    def test_symbolic_nonempty_input_gets_interpreted(self):
+        app = self.app()
+        self.submit(app, "???")
+        self.assertGreater(len(app.session_state.answer.split()), 40)
 
     def test_real_answer_without_secrets_or_network(self):
         app = self.app()

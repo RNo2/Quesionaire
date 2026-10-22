@@ -22,7 +22,7 @@ THEMES = {
     "fate": Theme(("fate", "predestination", "destined"), ("karma", "future", "predetermined"),
         ("written in advance", "pre written", "already written")),
     "counterfactuals": Theme(("regret", "mistake", "counterfactual"), ("past", "memory", "differently"),
-        ("what if", "could i have", "different decision", "change the past", "chosen differently")),
+        ("could i have", "different decision", "change the past", "chosen differently")),
     "awareness": Theme(("awareness", "witness", "soul", "thought", "impulse"),
         ("identity", "emotion", "personality", "observe", "mind", "ego"),
         ("who am i", "am i my thoughts", "higher consciousness", "after death")),
@@ -53,11 +53,11 @@ THEMES = {
     "science": Theme(("science", "physics", "empirical", "metaphysical"),
         ("quantum", "evidence", "proof", "spirit", "test", "god"),
         ("scientifically proven", "science can not explain", "beyond science")),
-    "ai": Theme(("ai", "robot", "machine", "algorithm"), ("intelligence", "computer", "technology"),
+    "ai": Theme(("ai", "robot", "algorithm"), ("machine", "intelligence", "computer", "technology"),
         ("artificial intelligence", "language model", "machine intelligence")),
     "action": Theme(("action", "act", "discipline", "habit", "effort", "passivity"),
         ("try", "attention", "character", "learn", "change", "consequences"),
-        ("why bother", "point in trying", "why should i try", "should i even try", "stop trying", "nothing matters", "doing nothing", "give up")),
+        ("why bother", "point in trying", "why should i try", "should i even try", "stop trying", "nothing matters", "doing nothing", "do nothing", "give up")),
 }
 
 RELATIONSHIPS = {

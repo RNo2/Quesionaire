@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
+import re
 
 from .lexicon import RELATIONSHIPS, THEMES, VOCABULARY
 from .preprocessing import preprocess
@@ -17,12 +18,25 @@ class QuestionType(str, Enum):
     PERSONAL = "personal_application"
     COMPARISON = "comparison"
     CHALLENGE = "challenge"
+    EXPLANATION = "explanation"
+    MECHANISM = "mechanism"
+    PURPOSE = "purpose"
+    CONSEQUENCES = "consequences"
+    EPISTEMIC = "epistemology"
+    PRACTICAL = "practical_decision"
 
 
 def classify_intent(text):
-    if text.has_any(("difference between", "different from", "versus", "vs", "same as")):
+    question = text.normalized
+    if text.has_any(("how should", "how ought", "how can i approach", "what should i do")):
+        return QuestionType.PRACTICAL
+    if text.has_any(("how could we know", "how can we know", "how do we know", "how can i know", "what evidence", "how would we know")):
+        return QuestionType.EPISTEMIC
+    if re.search(r"\bwhat (?:would |will )?(?:happen|happens|follow|follows)\b", question):
+        return QuestionType.CONSEQUENCES
+    if text.has_any(("difference between", "different from", "versus", "vs", "same as", "relationship between")) or re.search(r"\bhow .+ differ\b", question):
         return QuestionType.COMPARISON
-    if text.contains("if") and text.has_any(("meaningless", "nothing matters", "why bother", "contradiction", "how can", "is not", "does not", "can not", "point in trying")):
+    if text.contains("if") and text.has_any(("meaningless", "nothing matters", "why bother", "contradict", "contradiction", "how can", "is not", "does not", "can not", "point in trying", "why should")):
         return QuestionType.CHALLENGE
     if text.has_any(("should", "ought")):
         return QuestionType.NORMATIVE
@@ -32,10 +46,16 @@ def classify_intent(text):
         return QuestionType.HYPOTHETICAL
     if set(text.tokens) & {"i", "my", "me"} and text.has_any(("why", "how", "afraid", "regret", "fear")):
         return QuestionType.PERSONAL
-    if text.has_any(("what is", "what are", "define", "definition")):
-        return QuestionType.DEFINITION
-    if text.has_any(("why", "because", "how does", "how do")):
+    if re.search(r"^what (?:is|are) .+ for$", question) or text.has_any(("purpose of", "what purpose")):
+        return QuestionType.PURPOSE
+    if text.has_any(("what causes", "where does", "where do")) or re.search(r"^what makes .+ (?:happen|occur|arise)$", question):
         return QuestionType.CAUSAL
+    if re.search(r"^how (?:does|do|can|is|are)\b", question):
+        return QuestionType.MECHANISM
+    if text.has_any(("what is", "what are", "define", "definition")) or re.search(r"^what does .+ mean$", question):
+        return QuestionType.DEFINITION
+    if text.has_any(("why", "because")):
+        return QuestionType.EXPLANATION
     return QuestionType.TRUTH
 
 

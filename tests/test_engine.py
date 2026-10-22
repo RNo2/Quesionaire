@@ -30,7 +30,7 @@ class EngineTests(unittest.TestCase):
             with self.subTest(question=question):
                 result = reason(question)
                 self.assertIn("conditioned_choice", result.principle_ids)
-                self.assertIn("caus", result.answer)
+                self.assertTrue(any(word in result.answer for word in ("caus", "condition")))
                 self.assertGreater(len(result.answer.split()), 40)
         fate = reason("Does fate control us?")
         self.assertIn("fate_through_action", fate.principle_ids)
@@ -67,7 +67,7 @@ class EngineTests(unittest.TestCase):
         cases = {
             "What is consciousness?": QuestionType.DEFINITION,
             "Is free will real?": QuestionType.TRUTH,
-            "Why do humans suffer?": QuestionType.CAUSAL,
+            "Why do humans suffer?": QuestionType.EXPLANATION,
             "Should I regret what I did?": QuestionType.NORMATIVE,
             "What is the purpose of life?": QuestionType.EXISTENTIAL,
             "What if everything is predetermined?": QuestionType.HYPOTHETICAL,
@@ -80,8 +80,8 @@ class EngineTests(unittest.TestCase):
                 self.assertEqual(classify_intent(preprocess(question)), expected)
         self.assertTrue(answer_question("What is consciousness?").startswith("Consciousness concerns subjective experience"))
         personal = reason("Why am I afraid of failing?")
-        principle = next(p for p in PRINCIPLES if p.id == "suffering_and_conditions")
-        self.assertIn(personal.plan.position, principle.applications)
+        self.assertIn("i afraid of failing", personal.subject.label)
+        self.assertIn("anticipated", personal.answer.lower())
 
     def test_reusable_tensions(self):
         cases = {
@@ -128,18 +128,24 @@ class EngineTests(unittest.TestCase):
         self.assertIn("conditioned_choice", reason("Are decisions predetermind?").principle_ids)
         for question in ("How much is an airline ticket?", "What is free shipping?", "How does remote control work?", "Write a Python function", "What is a data structure?"):
             with self.subTest(question=question):
-                self.assertFalse(reason(question).supported)
+                result = reason(question)
+                self.assertTrue(result.supported)
+                self.assertTrue(result.lens_ids)
+                self.assertNotIn("ai_as_nature", result.principle_ids)
 
     def test_unmatched_questions_and_bounds(self):
         for question in ("Who won the match yesterday?", "xyzzy flobble", "What is the best pizza in Philly?"):
             with self.subTest(question=question):
                 result = reason(question)
-                self.assertFalse(result.supported)
-                self.assertIn("I do not know", result.answer)
-                self.assertIsNone(result.plan)
-        for question in ("", " \t\n ", "???"):
+                self.assertTrue(result.supported)
+                self.assertGreater(len(result.answer.split()), 50)
+                self.assertIsNotNone(result.plan)
+                self.assertTrue(result.lens_ids)
+        for question in ("", " \t\n "):
             self.assertEqual(answer_question(question), "")
-        self.assertIn("6,000", answer_question("x" * (MAX_QUESTION_LENGTH + 1)))
+        oversized = reason("x" * (MAX_QUESTION_LENGTH + 1))
+        self.assertTrue(oversized.truncated)
+        self.assertGreater(len(oversized.answer.split()), 40)
         with self.assertRaises(TypeError):
             answer_question(None)
 

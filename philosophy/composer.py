@@ -87,3 +87,41 @@ def compose(text, intent, selected, rules):
             else:
                 reasoning.append(f"A related distinction is this: {secondary.core_claim}")
     return AnswerPlan(position, tuple(reasoning), distinction, implication)
+
+
+def synthesize(universal, specific, subject, intent, selected, rules, focused=False):
+    """Keep the actual subject in charge; topic knowledge adds an argument."""
+    if specific is None or subject.factual:
+        return universal
+    primary = selected[0]
+    position = universal.position
+    # A direct definition can use the richer authored definition. A long
+    # unfamiliar noun phrase must not vanish behind a broadly matched theme.
+    if focused and not subject.profile and intent not in (
+        QuestionType.HYPOTHETICAL, QuestionType.CONSEQUENCES, QuestionType.EPISTEMIC,
+        QuestionType.MECHANISM, QuestionType.EXPLANATION, QuestionType.PURPOSE,
+    ):
+        position = specific.position
+    grounds = list(universal.reasoning[:1])
+    if rules:
+        grounds.append(rules[0].bridge)
+        distinction = rules[0].distinction
+        if primary.epistemic_status != "philosophical argument":
+            distinction += " " + specific.distinction.split(". ")[-1]
+        if not focused and not subject.profile:
+            grounds[0] = universal.position
+            position = rules[0].position
+    else:
+        grounds.append(primary.reasoning[0])
+        distinction = primary.qualifications[0]
+    if subject.profile:
+        if rules:
+            claim = rules[0].position
+            position = f"For {subject.quoted}, {claim[:1].lower() + claim[1:]}"
+            distinction += " " + universal.distinction
+        else:
+            distinction = universal.distinction
+    implication = universal.implication
+    if rules and not subject.profile:
+        implication = rules[0].implication
+    return AnswerPlan(position, tuple(grounds), distinction, implication)

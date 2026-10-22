@@ -19,6 +19,7 @@ ALIASES = {
     "chosen": "choose", "decisions": "decision", "deciding": "decide",
     "causes": "cause", "caused": "cause", "causal": "causality",
     "causation": "causality", "deterministic": "determinism",
+    "causally": "causality",
     "determined": "predetermined", "predestined": "predestination",
     "destiny": "fate", "fated": "fate", "prewritten": "predestination",
     "thoughts": "thought", "thinking": "thought", "impulses": "impulse",
