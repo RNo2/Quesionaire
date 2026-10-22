@@ -1,67 +1,115 @@
 # what is it you seek
 
-A minimal Streamlit question-and-answer app whose visible interface contains
-only:
+A minimal Streamlit question-and-answer app backed entirely by a local,
+deterministic philosophical engine. Type a question and press Enter.
+The existing interface and styling are unchanged.
 
-> what is it you seek
-
-plus the input field and the answer after submission.
+No API keys, paid inference, language models, embeddings, downloaded neural
+models or external services are used to answer a question. Once dependencies
+are installed, answering requires no outbound network access. Streamlit still
+uses its normal browser/server connection to display the app.
 
 ## Run locally
 
-1. Install dependencies:
+Use Python 3.12 (tested).
 
-   python -m venv .venv
-   source .venv/bin/activate
-   python -m pip install -r requirements.txt
+```sh
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m streamlit run app.py --browser.gatherUsageStats false
+```
 
-   On Windows, activate with `.venv\Scripts\Activate.ps1` instead.
-
-2. Set your API key:
-
-   Windows PowerShell:
-   $env:OPENAI_API_KEY="your-key"
-
-   macOS/Linux:
-   export OPENAI_API_KEY="your-key"
-
-3. Run:
-
-   streamlit run app.py
+On Windows, activate with `.venv\Scripts\Activate.ps1` instead.
+No secrets file or environment variables are required. Existing secrets files
+remain ignored and are not read by the app.
 
 ## Streamlit Community Cloud
 
-Create an app using repository `RNo2/Quesionaire`, branch `main`, and main file
-`app.py`. In Advanced settings choose Python 3.12. If already deployed, pushing
-to `main` updates the app automatically; reboot from Manage app if needed.
+- Repository: `RNo2/Quesionaire`
+- Branch: `main`
+- Main file: `app.py`
+- Python: **3.12**
+- Secrets: **none**
 
-Add this to the app's Secrets (never commit a real key):
+An existing deployment normally rebuilds when `main` changes. If necessary,
+select **Manage app → Reboot**. Old inference keys/model settings may be removed
+from Streamlit Secrets; they are no longer used. Only Streamlit is a direct
+runtime dependency. No usage-based inference costs are incurred; normal free
+hosting resource and availability limits still apply.
 
-```toml
-OPENAI_API_KEY = "your-key"
-OPENAI_MODEL = "gpt-5.5"
+## How answers are constructed
+
+```text
+question → normalization/aliases → weighted themes + question intent
+         → principle retrieval → tension/relationship rules
+         → answer plan → deterministic prose
 ```
 
-`OPENAI_MODEL` is optional. The app defaults to `gpt-5.5`.
+- `philosophy/knowledge.py`: 17 structured principles converted from the original
+  worldview: causal unfolding, conditioned choice, fate through action,
+  counterfactual learning, witness/awareness, consciousness, one-and-many,
+  localized perspective, universe experiencing itself, structure/function/
+  participation/purpose, perception, suffering, uncertainty, truth, science/
+  metaphysics, AI as nature, and discipline. Each has definitions, claims,
+  reasoning, qualifications, implications and equivalent sentence banks.
+- `worldview.py`: compatibility entry point exposing the structured knowledge.
+  The original prose is retained in Git history, not used as a system prompt.
+- `preprocessing.py`: Unicode/case/whitespace normalization, contraction
+  expansion, tokenization, explicit inflection/synonym aliases, bounded typo
+  correction, phrase boundaries and limited negation context.
+- `lexicon.py`: weighted keywords, phrases, exclusions and a theme graph.
+- `classifier.py`: nine question intentions, weighted textual evidence and
+  local token-overlap similarity against representative statements. Each graph
+  boost is one-hop and capped at 1.5; a boost alone cannot retrieve a principle
+  or activate a tension rule.
+- `engine.py`: retrieves up to three connected principles with direct support.
+  Multi-domain principles require support for each domain. Pure `reason(text)`
+  exposes the interpretation, scores, retrieved IDs, matching rules and plan.
+  `answer_question(text)` returns only the visitor's prose.
+- `logic.py`: reusable tension/synthesis rules. These cover agency/determinism,
+  fate/passivity, oneness/locality, perception/external fact, intelligence/
+  consciousness, purpose/function, ignorance/evidence, witness/personality,
+  regret/action, material suffering, science/metaphysics and purpose/action.
+  When several rules match, the highest-priority rule supplies the main
+  synthesis; the trace includes all matching rule IDs.
+- `composer.py`: position → reasoning → distinction → implication. Definitions,
+  personal questions, comparisons and challenges use different plans. A stable
+  SHA-256 selection varies equivalent wording without runtime randomness.
 
-The user submits by pressing Enter. The submit control exists only to support
-the Streamlit form and is hidden from the interface.
+The engine reasons within a finite, authored English vocabulary and rule base.
+It is not unrestricted language understanding, a theorem prover, a general
+fact-finder or a replacement for evidence. Negation handling is limited to
+local context; answers discuss distinctions without attributing a belief to
+someone simply because they mention it. Complex or unsupported wording may be
+missed. Unmatched questions receive an honest limitation rather than invented
+certainty. Input is bounded at 6,000 characters. No session chat history or
+shared response cache is used; questions are interpreted independently.
 
-For local secrets, use `.streamlit/secrets.toml` (ignored by Git). Each setting
-falls back to the matching environment variable when absent from Secrets.
-The selected model must be available to your API account and support the
-Responses API. The app sends the full `WORLDVIEW` as instructions, does not
-request response storage, and renders replies as Markdown without raw HTML.
-It has no shared response cache; session state keeps only the current answer
-and last successful question.
+## Extend the worldview
 
-## Validation
+Edit a principle's banks in `knowledge.py`, add recognition language and theme
+relationships in `lexicon.py`, and add an explicit relationship in `logic.py`
+when two ideas need a shared argument. Add paraphrases, counterexamples and
+expected distinctions to `tests/test_engine.py`. Do not add exact question-to-
+answer mappings. Sentence choices should remain equivalent in claim and scope.
+
+## Validate
 
 ```sh
 python -m pip check
 python -m unittest discover -s tests -v
 ```
 
-Tests run the Streamlit app with mocked API calls, covering blank submissions,
-configuration fallbacks, full worldview delivery, Markdown, duplicate handling,
-and safe, retryable failures. They do not validate live model/account access.
+The engine tests also run without installing Streamlit:
+
+```sh
+python -m unittest discover -s tests -p test_engine.py -v
+```
+
+The corpus covers all philosophical domains, question types, paraphrases,
+tensions, exclusions, typos, unsupported questions, input bounds, negation,
+consistent output across process hash seeds and blocked outbound sockets.
+Streamlit AppTest exercises real local answers, empty submissions, reruns,
+duplicates and Markdown rendering without raw response HTML. No API mocks or
+external test credentials are needed.

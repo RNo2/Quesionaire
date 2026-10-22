@@ -1,11 +1,7 @@
-import os
-import logging
 import streamlit as st
-from openai import OpenAI
-from streamlit.errors import StreamlitSecretNotFoundError
-from worldview import WORLDVIEW
 
-logger = logging.getLogger(__name__)
+from philosophy import answer_question
+from philosophy.preprocessing import normalize
 
 st.set_page_config(
     page_title="",
@@ -103,57 +99,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-DEFAULT_MODEL = "gpt-5.5"
-UNAVAILABLE = "The answer could not be reached. Try again shortly."
-
-
-def get_setting(name, default=None):
-    """Prefer Streamlit Secrets, with an environment fallback per setting."""
-    try:
-        value = st.secrets.get(name)
-    except StreamlitSecretNotFoundError:
-        value = None
-    return value or os.getenv(name) or default
-
-
-def answer_question(question):
-    """Keep credentials, transport details and provider errors off the page."""
-    try:
-        api_key = get_setting("OPENAI_API_KEY")
-        if not api_key:
-            logger.error("Answer unavailable: OPENAI_API_KEY is not configured.")
-            return None
-        with OpenAI(api_key=api_key, timeout=45.0, max_retries=0) as client:
-            response = client.responses.create(
-                model=get_setting("OPENAI_MODEL", DEFAULT_MODEL),
-                instructions=WORLDVIEW,
-                input=question,
-                max_output_tokens=1600,
-                store=False,
-            )
-        if response.status != "completed":
-            logger.warning(
-                "Answer unavailable: response status=%s; incomplete reason=%s",
-                response.status,
-                getattr(getattr(response, "incomplete_details", None), "reason", None),
-            )
-            return None
-        answer = response.output_text.strip()
-        if not answer:
-            logger.warning("Answer unavailable: response completed without text.")
-        return answer or None
-    except Exception as error:
-        # Log only diagnostic categories, never exception messages, request
-        # bodies, headers, questions or credentials.
-        logger.error(
-            "Answer unavailable: error_type=%s http_status=%s",
-            type(error).__name__,
-            getattr(error, "status_code", None),
-        )
-        # SDK initialization, configuration and request failures share a quiet
-        # visitor message. Never render exceptions or credential values.
-        return None
-
 st.markdown('<div class="seek">what is it you seek</div>', unsafe_allow_html=True)
 
 with st.form("ask", clear_on_submit=True, enter_to_submit=True, border=False):
@@ -172,12 +117,10 @@ if "last_question" not in st.session_state:
     st.session_state.last_question = None
 
 question = question.strip()
-if submitted and question and question != st.session_state.last_question:
-    answer = answer_question(question)
-    st.session_state.answer = answer or UNAVAILABLE
-    # Successful duplicate submissions reuse the existing response. Failed
-    # requests remain retryable, and ordinary reruns never call the API.
-    st.session_state.last_question = question if answer else None
+normalized_question = normalize(question)
+if submitted and normalized_question and normalized_question != st.session_state.last_question:
+    st.session_state.answer = answer_question(question)
+    st.session_state.last_question = normalized_question
 
 if st.session_state.answer:
     with st.container(key="answer"):
