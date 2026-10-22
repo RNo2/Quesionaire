@@ -8,6 +8,16 @@ background is a decorative generated asset in `static/hermes-pixel.png`; it is
 not loaded from an external image service. Static serving is enabled in
 `.streamlit/config.toml`.
 
+Above the question is an interactive, low-resolution **3D voxel Hermes**.
+Hover for a subtle turn, drag with a mouse or finger to rotate, or focus the
+portrait and use the arrow keys. Home or a double-click resets the view.
+The portrait uses native WebGL through Streamlit's current v2 component API;
+there is no graphics library, external model download or CDN. It renders only
+while changing orientation, respects reduced-motion preferences, and releases
+GPU resources when unmounted. If WebGL is unavailable, the local pixel portrait
+appears instead. The source is `ui/hermes.py` and `ui/hermes.js`; restart the app
+after editing the JavaScript so the component definition reloads.
+
 No API keys, paid inference, language models, embeddings, downloaded neural
 models or external services are used to answer a question. Once dependencies
 are installed, answering requires no outbound network access. Streamlit still

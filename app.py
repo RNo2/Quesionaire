@@ -3,6 +3,7 @@ import streamlit as st
 from philosophy import answer_question
 from philosophy.engine import MAX_QUESTION_LENGTH
 from philosophy.preprocessing import normalize
+from ui.hermes import render_hermes
 
 st.set_page_config(
     page_title="",
@@ -44,7 +45,7 @@ st.markdown(
 
         .block-container {
             max-width: 760px;
-            padding-top: 23vh;
+            padding-top: 4vh;
             padding-bottom: 12vh;
         }
 
@@ -126,7 +127,7 @@ st.markdown(
                     url("/app/static/hermes-pixel.png");
             }
             .block-container {
-                padding-top: 18vh;
+                padding-top: 2vh;
                 padding-left: 1.25rem;
                 padding-right: 1.25rem;
             }
@@ -136,6 +137,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+render_hermes()
 st.markdown('<h1 class="seek">What do you seek</h1>', unsafe_allow_html=True)
 
 with st.form("ask", clear_on_submit=True, enter_to_submit=True, border=False):
