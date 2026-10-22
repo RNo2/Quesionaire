@@ -15,13 +15,6 @@
 
 .stApp {
     background-color: #060508;
-    background-image:
-        radial-gradient(ellipse at 50% 35%, transparent 10%, rgba(3, 2, 6, .34) 70%, rgba(3, 2, 6, .74) 100%),
-        linear-gradient(180deg, rgba(5, 3, 8, .13) 0%, rgba(5, 3, 8, .21) 34%, rgba(5, 3, 8, .61) 66%, rgba(5, 3, 8, .91) 100%),
-        url("/app/static/hermes-presence.png");
-    background-size: cover;
-    background-position: calc(50% + var(--presence-x, 0px)) calc(50% + var(--presence-y, 0px));
-    background-attachment: fixed;
     color: #ddd5c9;
 }
 
@@ -118,12 +111,6 @@ div[data-testid="stForm"] {
 }
 
 @media (max-width: 640px) {
-    .stApp {
-        background-position: 50% 0%;
-        background-image:
-            linear-gradient(180deg, rgba(5, 3, 8, .16) 0%, rgba(5, 3, 8, .32) 30%, rgba(5, 3, 8, .73) 65%, rgba(5, 3, 8, .94) 100%),
-            url("/app/static/hermes-presence.png");
-    }
     .block-container {
         padding-top: 44vh;
         padding-top: clamp(19rem, 44svh, 28rem);
@@ -135,6 +122,20 @@ div[data-testid="stForm"] {
     .stTextInput input, [data-testid="stTextInput"] input { font-size: 1.18rem !important; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .stApp { background-position: 50% 50%; }
+
+.hermes-monument {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100svh;
+    image-rendering: pixelated;
+    pointer-events: none;
+    z-index: 0;
+    opacity: .87;
+    mask-image: linear-gradient(to bottom, #000 0%, #000 32%, rgba(0,0,0,.75) 52%, transparent 92%);
+}
+[data-testid="stAppViewContainer"] { position: relative; z-index: 1; }
+.stApp { background: radial-gradient(ellipse at 50% 30%, #211c23 0%, #0a080d 57%, #040306 100%); }
+@media (max-width: 640px) {
+    .hermes-monument { opacity: .9; }
 }

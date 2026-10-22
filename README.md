@@ -6,22 +6,26 @@ service, downloaded model or outbound connection is used to answer questions.
 
 ## Interface
 
-A newly generated, viewport-scale Hermes presence sits behind the question,
-with a centered face, outstretched arms, shadow, mist and a dark vignette.
-The small voxel component has been retired. Dusty wine typography and bone
-answer text use locally hosted **EB Garamond**, licensed under the SIL Open
-Font License (see `static/fonts/OFL.txt`). No external font/image host is needed.
-The decorative background has restrained desktop pointer parallax; touch and
-reduced-motion users receive a still composition. It never captures input,
-focus or scrolling. Mobile styling keeps the question and input above the fold.
+Hermes is an authored, articulated pixel-stone monument, drawn into a coarse
+Canvas framebuffer and enlarged with nearest-neighbor sampling. Faceted stone,
+chisel marks and muted bronze details replace the generated photographic image.
+On a nonempty Enter submission, the shoulder and elbow slowly raise an open
+hand over 3.2 seconds, hold briefly, then lower over 3.5 seconds. Answers appear
+immediately; the animation never blocks reading or submission. Repeated questions
+replay the gesture, while empty submissions do nothing.
 
-`app.py` owns the form/state flow. `ui/theme.css` owns composition and typography;
-`ui/presence.py` and `ui/presence.js` attach the decorative pointer interaction
-through Streamlit's v2 component API. Restart after changing component JS.
-`ui/styles.py` embeds the local background and font directly in the stylesheet,
-so their display does not depend on cloud static-file routing. Transparent main
-containers keep the background visible. Static serving remains enabled for
-other assets in `.streamlit/config.toml`.
+Pointer movement subtly shifts the head. Tap/click the upper figure to awaken
+it without asking a question. Touch scrolling and form controls are preserved.
+Reduced-motion users receive a still raised pose instead of animation. Drawing
+stops when idle; component teardown releases listeners and animation frames.
+No graphics library, generated image, API, or external asset host is used for
+the figure. Desktop and mobile share the same jointed geometry.
+
+Dusty wine headings and bone answer text use locally embedded EB Garamond,
+licensed under the SIL Open Font License (`static/fonts/OFL.txt`). `app.py` owns
+the form/state flow; `ui/theme.css` owns composition; `ui/presence.py` and
+`ui/presence.js` supply the local Streamlit v2 component. `ui/styles.py` embeds
+the font to avoid cloud static routing dependencies. Restart after JS changes.
 
 ## Run and deploy
 

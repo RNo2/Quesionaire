@@ -1,4 +1,4 @@
-"""A decorative, viewport-scale presence with restrained pointer parallax."""
+"""An articulated pixel monument that responds locally to submission and touch."""
 
 from pathlib import Path
 

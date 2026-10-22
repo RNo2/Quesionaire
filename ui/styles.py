@@ -9,7 +9,6 @@ def stylesheet():
     root = Path(__file__).resolve().parents[1]
     css = (root / 'ui/theme.css').read_text()
     for asset, mime in (
-        ('hermes-presence.png', 'image/png'),
         ('fonts/EBGaramond.ttf', 'font/ttf'),
     ):
         encoded = b64encode((root / 'static' / asset).read_bytes()).decode('ascii')
